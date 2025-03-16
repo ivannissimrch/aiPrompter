@@ -1,61 +1,176 @@
 "use client";
 
 import { getAiAnswer } from "@/helpers/getAiAnswer";
-import { useRef, useState } from "react";
-import { Inputs } from "../page";
+import { FormEvent, useState } from "react";
+import Input from "./Input";
+import {
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+} from "@mui/material";
+import ReactMarkdown from "react-markdown";
+import { v4 as uuidv4 } from "uuid";
+import storeToLocalStorage from "@/helpers/storeToLocalStorage";
+import getDataFromLocalStorage from "@/helpers/getDataFromLocalStorage";
+import { string } from "zod";
 
-export default function Form({ inputs }: { inputs: Inputs[] }) {
-  const [aiMessage, setAiMessage] = useState("");
-  const submitRef = useRef<HTMLButtonElement | null>(null);
+export interface Inputs {
+  id: string;
+  title: string;
+  question: string;
+}
 
-  function scrollToComponent(input: Inputs, idx: number) {
-    if (idx === inputs.length - 1) {
-      submitRef.current?.scrollIntoView({ behavior: "smooth" });
-      return;
-    }
-    inputs[idx + 1].inputRef.current?.scrollIntoView({
-      behavior: "smooth",
+export interface Store {
+  inputValues: Inputs[];
+  userQuestion: string;
+  aiAnswer: string;
+  id: string;
+}
+
+export interface PrevConversations {
+  user: string;
+  model: string;
+}
+
+const initialStoreState: Store = {
+  inputValues: [
+    {
+      id: "q1",
+      title: "Describe who the result will be tailored for",
+      question: "",
+    },
+    { id: "q2", title: "Provide background information", question: "" },
+    { id: "q3", title: "Provide information needed.", question: "" },
+    {
+      id: "q4",
+      title: "Defines how you want the AI tool to respond",
+      question: "",
+    },
+    { id: "q5", title: "Provide  boundaries", question: "" },
+  ],
+  userQuestion: "",
+  aiAnswer: "",
+  id: uuidv4(),
+};
+
+export default function Form() {
+  const [storeState, setStoreState] = useState<Store>(initialStoreState);
+  const [isMessageOpen, setIsMessageOpen] = useState(false);
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event?.preventDefault();
+    // const conversationHistory = getDataFromLocalStorage("previousConversations")
+    //   .map(
+    //     (conversation: { conversation: string[] }) => conversation.conversation
+    //   )
+    //   .join(" ");
+
+    const userPrompt = await updateQuestion();
+    const aiAnswer = await getAiAnswer(userPrompt);
+    updateAiAnswer(aiAnswer);
+    //reset all input values
+    clearAllInputs();
+
+    //update chatHistory
+    // const prevConversations: PrevConversations[] | [] = getDataFromLocalStorage(
+    //   "previousConversations"
+    // );
+
+    // const currentConversation = {
+    //   conversation: `user asked ${userPrompt} and your response was ${aiAnswer}`,
+    // };
+    // prevConversations.unshift(currentConversation);
+    // storeToLocalStorage("previousConversations", prevConversations);
+  }
+
+  async function updateInputsValues(newValue: string, id: string) {
+    setStoreState((prev) => ({
+      ...prev,
+      inputValues: prev.inputValues.map((input) =>
+        input.id === id ? { ...input, question: newValue } : input
+      ),
+    }));
+  }
+
+  async function resetInputsValues(id: string) {
+    setStoreState((prev) => ({
+      ...prev,
+      inputValues: prev.inputValues.map((input) =>
+        input.id === id ? { ...input, question: "" } : input
+      ),
+    }));
+  }
+
+  async function clearAllInputs() {
+    setStoreState((prev) => ({
+      ...prev,
+      inputValues: prev.inputValues.map((input) => ({
+        ...input,
+        question: "",
+      })),
+    }));
+  }
+
+  async function updateQuestion() {
+    const userPrompt = storeState.inputValues
+      .map((inputValue) => inputValue.question)
+      .join(" ");
+    setStoreState((prev) => {
+      return {
+        ...prev,
+        userQuestion: userPrompt,
+      };
+    });
+    return userPrompt;
+  }
+
+  async function updateAiAnswer(newAnswer: string) {
+    console.log(newAnswer);
+    setIsMessageOpen(true);
+    setStoreState((prev) => {
+      return {
+        ...prev,
+        aiAnswer: newAnswer,
+      };
     });
   }
+
   return (
-    <form
-      onSubmit={async (event) => {
-        event?.preventDefault();
-        // const aiAnswer = await getAiAnswer(testPersonaMessage);
-        // setIsOpen(true);
-        // setAiMessage(aiAnswer);
-      }}
-      className="flex flex-col  w-full  p-10 items-center"
-    >
-      {inputs.map((input, idx) => (
-        <div
-          key={input.title}
-          className={`${
-            idx === 0 ? "h-[90vh]" : "h-[100vh]"
-          } w-full flex flex-col justify-end`}
-          ref={input.inputRef}
-        >
-          <label className="bg-white  m-2  flex justify-between text-black">
-            {input.title}
-            <input
-              type="text"
-              required
-              name={input.title}
-              className="  p-4 bg-[#CAD2C5] w-1/2"
-              placeholder={input.title}
-            />
-            <button type="button" onClick={() => scrollToComponent(input, idx)}>
-              Next
-            </button>
-          </label>
-        </div>
-      ))}
-      <button
-        ref={submitRef}
-        className="bg-white w-1/2 p-4 m-2 h-12 rounded text-black"
+    <>
+      <form
+        onSubmit={handleSubmit}
+        className="flex flex-col  w-full  p-10 items-center h1/2"
       >
-        Submit
-      </button>
-    </form>
+        {storeState.inputValues.map((input) => (
+          <Input
+            key={input.title}
+            input={input}
+            updateInputsValues={updateInputsValues}
+            resetInputsValues={resetInputsValues}
+          />
+        ))}
+        <button className="bg-white w-1/2 p-4 m-2 h-12 rounded text-black">
+          Submit
+        </button>
+      </form>
+      <section>
+        <Dialog
+          open={isMessageOpen}
+          onClose={() => setIsMessageOpen(false)}
+          aria-labelledby="alert-dialog-title"
+          aria-describedby="alert-dialog-description"
+        >
+          <DialogTitle id="alert-dialog-title">AI Response</DialogTitle>
+          <DialogContent>
+            <ReactMarkdown>{storeState.aiAnswer}</ReactMarkdown>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setIsMessageOpen(false)}>Close</Button>
+          </DialogActions>
+        </Dialog>
+      </section>
+    </>
   );
 }
