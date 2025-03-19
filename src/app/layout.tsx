@@ -22,8 +22,18 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="h-full bg-gray-100">
-      <body className="h-full">{children}</body>
+    <html lang="en" className="h-screen bg-white">
+      <body className="h-full bg-green-400 grid grid-cols-[repeat(12,_1fr)] grid-rows-[repeat(11,_1fr)_.5fr] gap-x-[0px] gap-y-[0px]">
+        <header className="bg-white text-black [grid-area:1_/_1_/_2_/_13]  font-[Raleway] text-[36px] not-italic font-semibold leading-[normal] pl-[31px] flex items-center">
+          Logo
+        </header>
+        <main className="[grid-area:2_/_1_/_12_/_13] bg-white">{children}</main>
+        <footer className="bg-gray-300 text-black [grid-area:12_/_1_/_13_/_13] flex items-center pl-[31px]">
+          <p className=" font-[Bitter] text-[26px] not-italic font-normal leading-[normal] ">
+            footer
+          </p>
+        </footer>
+      </body>
     </html>
   );
 }

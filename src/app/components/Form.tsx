@@ -1,11 +1,11 @@
 "use client";
 
-import { getAiAnswer } from "@/helpers/getAiAnswer";
-import { useRef, useState } from "react";
+// import { getAiAnswer } from "@/helpers/getAiAnswer";
+import { useRef } from "react";
 import { Inputs } from "../page";
 
 export default function Form({ inputs }: { inputs: Inputs[] }) {
-  const [aiMessage, setAiMessage] = useState("");
+  // const [aiMessage, setAiMessage] = useState("");
   const submitRef = useRef<HTMLButtonElement | null>(null);
 
   function scrollToComponent(input: Inputs, idx: number) {
