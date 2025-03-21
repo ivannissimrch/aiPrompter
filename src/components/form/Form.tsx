@@ -1,7 +1,7 @@
 "use client";
 
 import { Inputs } from "@/app/promptInput/page";
-import { once } from "events";
+
 import { motion } from "framer-motion";
 export default function Form({ inputs }: { inputs: Inputs[] }) {
   function scrollToNextComponent(input: Inputs, idx: number) {
