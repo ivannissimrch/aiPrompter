@@ -1,19 +1,36 @@
 "use client";
 
 import { Inputs } from "@/app/promptInput/page";
-
 import { motion } from "framer-motion";
-export default function Form({ inputs }: { inputs: Inputs[] }) {
+import { FormEvent } from "react";
+
+interface FormProps {
+  inputs: Inputs[];
+  activeStep: number;
+  handleNext: () => void;
+  handleBack: () => void;
+  handleReset: () => void;
+}
+
+export default function Form({
+  inputs,
+  activeStep,
+  handleNext,
+  handleBack,
+  handleReset,
+}: FormProps) {
   function scrollToNextComponent(input: Inputs, idx: number) {
     inputs[idx + 1].inputRef.current?.scrollIntoView({
       behavior: "smooth",
     });
+    handleNext();
   }
 
   function scrollToPrevComponent(input: Inputs, idx: number) {
     inputs[idx - 1].inputRef.current?.scrollIntoView({
       behavior: "smooth",
     });
+    handleBack();
   }
 
   const variants = {
@@ -27,13 +44,47 @@ export default function Form({ inputs }: { inputs: Inputs[] }) {
     },
   };
 
+  function NextButton({ input, idx }: { input: Inputs; idx: number }) {
+    return (
+      <button type="button" onClick={() => scrollToNextComponent(input, idx)}>
+        Next
+      </button>
+    );
+  }
+
+  function BackButton({ input, idx }: { input: Inputs; idx: number }) {
+    return (
+      <button
+        className={`${idx === 0 ? "hidden" : "visible"}`}
+        type="button"
+        onClick={() => scrollToPrevComponent(input, idx)}
+      >
+        Back
+      </button>
+    );
+  }
+
+  function ReviewButton() {
+    return (
+      <button className=" w-1/2 p-4 m-2 h-12  text-black underline">
+        ReView
+      </button>
+    );
+  }
+
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+  }
+
+  const FIRST_INPUT_INDEX = 0;
+  const LAST_INPUT_INDEX = inputs.length - 1;
+
   return (
     <form
-      onSubmit={async (event) => {
-        event?.preventDefault();
-      }}
+      onSubmit={handleSubmit}
       className="flex flex-col  w-full  p-10 items-center"
     >
+      {/* inputs components */}
       {inputs.map((input, idx) => (
         <motion.div
           key={input.title}
@@ -45,7 +96,7 @@ export default function Form({ inputs }: { inputs: Inputs[] }) {
         >
           <div
             className={`${
-              idx === 0 ? "h-[90vh]" : "h-[100vh]"
+              idx === FIRST_INPUT_INDEX ? "h-[90vh]" : "h-[100vh]"
             } w-full flex flex-col justify-center`}
             ref={input.inputRef}
           >
@@ -58,26 +109,18 @@ export default function Form({ inputs }: { inputs: Inputs[] }) {
                 className="p-4 bg-[#CAD2C5] w-1/2 flex"
                 placeholder={input.title}
               />
-              {idx < inputs.length - 1 ? (
-                <div className="w-1/2 flex justify-evenly">
-                  <button
-                    className={`${idx === 0 ? "hidden" : "visible"}`}
-                    type="button"
-                    onClick={() => scrollToPrevComponent(input, idx)}
-                  >
-                    Back
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => scrollToNextComponent(input, idx)}
-                  >
-                    Next
-                  </button>
+              {/* Buttons */}
+              {idx === FIRST_INPUT_INDEX ? (
+                <NextButton idx={idx} input={input} />
+              ) : idx === LAST_INPUT_INDEX ? (
+                <div>
+                  <BackButton idx={idx} input={input} /> <ReviewButton />{" "}
                 </div>
               ) : (
-                <button className=" w-1/2 p-4 m-2 h-12  text-black underline">
-                  ReView
-                </button>
+                <>
+                  <BackButton idx={idx} input={input} />
+                  <NextButton idx={idx} input={input} />
+                </>
               )}
             </div>
           </div>
