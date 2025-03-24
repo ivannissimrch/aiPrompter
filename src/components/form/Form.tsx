@@ -2,6 +2,7 @@
 
 import { Inputs } from "@/app/promptInput/page";
 import { motion } from "framer-motion";
+import Link from "next/link";
 import { FormEvent } from "react";
 
 interface FormProps {
@@ -46,7 +47,11 @@ export default function Form({
 
   function NextButton({ input, idx }: { input: Inputs; idx: number }) {
     return (
-      <button type="button" onClick={() => scrollToNextComponent(input, idx)}>
+      <button
+        className="w-1/4 mt-4 flex justify-end bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+        type="button"
+        onClick={() => scrollToNextComponent(input, idx)}
+      >
         Next
       </button>
     );
@@ -55,7 +60,9 @@ export default function Form({
   function BackButton({ input, idx }: { input: Inputs; idx: number }) {
     return (
       <button
-        className={`${idx === 0 ? "hidden" : "visible"}`}
+        className={`${
+          idx === 0 ? "hidden" : "visible"
+        } w-1/4 flex justify-start bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mt-4`}
         type="button"
         onClick={() => scrollToPrevComponent(input, idx)}
       >
@@ -66,9 +73,12 @@ export default function Form({
 
   function ReviewButton() {
     return (
-      <button className=" w-1/2 p-4 m-2 h-12  text-black underline">
+      <Link
+        href="review"
+        className="flex w-full justify-end p-4 m-2 h-12  text-black underline"
+      >
         ReView
-      </button>
+      </Link>
     );
   }
 
@@ -94,7 +104,7 @@ export default function Form({
           variants={variants}
           className="w-full"
         >
-          <div
+          <section
             className={`${
               idx === FIRST_INPUT_INDEX ? "h-[90vh]" : "h-[100vh]"
             } w-full flex flex-col justify-center`}
@@ -110,20 +120,28 @@ export default function Form({
                 placeholder={input.title}
               />
               {/* Buttons */}
+
               {idx === FIRST_INPUT_INDEX ? (
-                <NextButton idx={idx} input={input} />
+                <div className="w-1/2 flex justify-end">
+                  {" "}
+                  <NextButton idx={idx} input={input} />
+                </div>
               ) : idx === LAST_INPUT_INDEX ? (
-                <div>
+                <div className=" w-1/2">
                   <BackButton idx={idx} input={input} /> <ReviewButton />{" "}
                 </div>
               ) : (
-                <>
-                  <BackButton idx={idx} input={input} />
-                  <NextButton idx={idx} input={input} />
-                </>
+                <div className="w-1/2 flex justify-evenly">
+                  <div className=" w-full flex ">
+                    <BackButton idx={idx} input={input} />
+                  </div>
+                  <div className="flex justify-end w-full">
+                    <NextButton idx={idx} input={input} />
+                  </div>
+                </div>
               )}
             </div>
-          </div>
+          </section>
         </motion.div>
       ))}
     </form>
